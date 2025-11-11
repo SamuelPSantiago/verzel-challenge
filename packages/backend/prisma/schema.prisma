@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String      @id @default(uuid())
+  name        String
+  email       String      @unique
+  password    String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  movieLists  MovieList[]
+
+  @@index([email])
+  @@index([id])
+
+  @@map("users")
+}
+
+model MovieList {
+  id        String          @id @default(uuid())
+  userId    String
+  name      String
+  isDefault Boolean         @default(false)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     MovieListItem[]
+
+  @@index([userId])
+  @@index([id])
+
+  @@map("movie_lists")
+}
+
+model MovieListItem {
+  id          String     @id @default(uuid())
+  movieListId String
+  movieId     Int        // ID do filme na TMDb
+  title       String
+  posterPath  String?
+  releaseDate String?
+  overview    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  movieList   MovieList  @relation(fields: [movieListId], references: [id], onDelete: Cascade)
+
+  @@unique([movieListId, movieId])
+  @@index([movieListId])
+  @@index([id])
+
+  @@map("movie_list_items")
+}
